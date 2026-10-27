@@ -1,0 +1,3 @@
+import Link from "next/link";
+import { CheckCircle2, Wallet } from "lucide-react";
+export default function CheckoutSuccessPage(){return <div className="auth-wrap"><div className="auth-card" style={{textAlign:"center"}}><div className="feature-icon" style={{margin:"0 auto",width:64,height:64,borderRadius:22,background:"#def9ec",color:"#138564"}}><CheckCircle2 size={30}/></div><h1>Payment submitted</h1><p>Thank you. We are confirming your payment now. Your coins will appear in your wallet as soon as it is confirmed.</p><div className="notice" style={{textAlign:"left",marginBottom:20}}>This usually takes only a few moments.</div><Link href="/wallet" className="btn btn-primary"><Wallet size={17}/>Open wallet</Link></div></div>;}

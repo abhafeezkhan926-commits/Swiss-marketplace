@@ -1,0 +1,3 @@
+import Link from "next/link";
+import { CircleX, Wallet } from "lucide-react";
+export default function CheckoutCancelledPage(){return <div className="auth-wrap"><div className="auth-card" style={{textAlign:"center"}}><div className="feature-icon" style={{margin:"0 auto",width:64,height:64,borderRadius:22,background:"#fff0f1",color:"#c43b4b"}}><CircleX size={30}/></div><h1>Checkout cancelled</h1><p>No coins are added for a cancelled or pending payment. You can return to the wallet and start a fresh checkout.</p><Link href="/wallet" className="btn btn-primary"><Wallet size={17}/>Back to wallet</Link></div></div>;}

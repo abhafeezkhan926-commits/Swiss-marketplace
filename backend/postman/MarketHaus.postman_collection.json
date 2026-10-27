@@ -1,0 +1,307 @@
+{
+  "info": {
+    "_postman_id": "9c1437c8-52a0-4d93-9b9b-6f20d850ea12",
+    "name": "MarketHaus Marketplace API",
+    "description": "API smoke-test collection for the Swiss Live Shopping Marketplace starter. Session authentication uses the HttpOnly cookie created by login/register; Postman should retain cookies for the base URL. Use a development database and Stripe test mode. Do not send real secrets in exported collections. Local default uses the frontend same-origin API rewrite at port 3000; the backend health endpoint is also directly available on port 3001.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "email",
+      "value": "testuser@example.com"
+    },
+    {
+      "key": "password",
+      "value": "DemoUser@12345"
+    },
+    {
+      "key": "packageId",
+      "value": "REPLACE_WITH_PACKAGE_ID_FROM_GET_PACKAGES"
+    },
+    {
+      "key": "auctionId",
+      "value": "REPLACE_WITH_ACTIVE_AUCTION_ID"
+    },
+    {
+      "key": "productId",
+      "value": "REPLACE_WITH_PRODUCT_ID"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health & session",
+      "item": [
+        {
+          "name": "Health check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/health"
+          }
+        },
+        {
+          "name": "Register new adult account (optional)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Marketplace Test Buyer\",\n  \"email\": \"buyer-{{$timestamp}}@example.test\",\n  \"password\": \"ReplaceThisPassword123!\",\n  \"adultConfirmed\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/auth/register",
+            "description": "Only confirm adult eligibility for an actually eligible adult account. Registration sets an HttpOnly session cookie."
+          }
+        },
+        {
+          "name": "Login (sets HttpOnly session cookie)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/auth/login"
+          }
+        },
+        {
+          "name": "Current user",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/auth/me"
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/api/auth/logout"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Products",
+      "item": [
+        {
+          "name": "Search products",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/products?q=&limit=20"
+          }
+        },
+        {
+          "name": "Create product (requires login)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Swiss Demo Product\",\n  \"description\": \"A development-only listing used to verify backend validation and MongoDB persistence.\",\n  \"category\": \"General\",\n  \"priceMinor\": 2500,\n  \"currency\": \"chf\",\n  \"stock\": 2,\n  \"images\": [],\n  \"status\": \"published\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/products"
+          }
+        },
+        {
+          "name": "Get product by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/products/{{productId}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Wallet & payments",
+      "item": [
+        {
+          "name": "Wallet and ledger",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/wallet"
+          }
+        },
+        {
+          "name": "List coin packages",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/wallet/packages"
+          }
+        },
+        {
+          "name": "Create Stripe test Checkout (requires login and STRIPE_SECRET_KEY)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "postman-topup-{{$guid}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"packageId\": \"{{packageId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/wallet/checkout",
+            "description": "Uses the server-side package price. The wallet is credited only after the Stripe webhook signature and payment details are verified."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Auctions & notifications",
+      "item": [
+        {
+          "name": "List active/scheduled auctions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/auctions"
+          }
+        },
+        {
+          "name": "List my auction requests",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/auctions/requests"
+          }
+        },
+        {
+          "name": "Request auction participation (requires login)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/auctions/{{auctionId}}/participation"
+          }
+        },
+        {
+          "name": "Place bid (requires approved participation and coins)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "postman-bid-{{$guid}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amountCoins\": 5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/auctions/{{auctionId}}/bids"
+          }
+        },
+        {
+          "name": "Notifications",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/notifications"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin (requires admin session)",
+      "item": [
+        {
+          "name": "Dashboard summary",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/admin/dashboard"
+          }
+        },
+        {
+          "name": "Coin package configuration",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/admin/coin-packages"
+          }
+        },
+        {
+          "name": "Auction review queue",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/admin/auction-requests"
+          }
+        }
+      ]
+    }
+  ]
+}
